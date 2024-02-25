@@ -4,26 +4,24 @@ Focus on making the most of Xray (HTTP/HTTPS/Socks/TProxy inbounds, multiple pro
 
 ## Warnings
 
-* Version 3.0.0 involves a lot of breaking changes and is completely not compatible with older versions. Configurations needs to be filled in again.
-* Since the last OpenWrt version with `firewall3` as default firewall implementation (which is OpenWrt 21.02.7) is now EoL, the `fw3` variant of this project is dropped.
-    * Check out [tag v2.1.2](https://github.com/yichya/luci-app-xray/tree/v2.1.2) and compile fw3 variant yourself if you really need that.
-* About experimental REALITY support
-    * may change quite frequently so keep in mind about following warnings
-    * server role support **involves breaking changes if you use HTTPS server**: certificate settings are now bound to stream security, so previously uploaded certificate and key files will disappear in LuCI, but this won't prevent Xray from using them. Your previously uploaded file are still there, just select them again in LuCI. If Xray fails to start up and complains about missing certificate files, also try picking them again.
-    * legacy XTLS support has already been removed in version 1.8.0 and is also removed by this project since version 2.0.0.
-* If you see `WARNING: at least one of asset files (geoip.dat, geosite.dat) is not found under /usr/share/xray. Xray may not work properly` and don't know what to do:
-    * try `opkg update && opkg install xray-geodata` (at least OpenWrt 21.02 releases)
-    * if that doesn't work or you are using OpenWrt 19.07 releases, see [#52](https://github.com/yichya/luci-app-xray/issues/52#issuecomment-856059905)
+* For security concerns, global SOCKS / HTTP inbound (listen on 0.0.0.0, port 1080 / 1081 by default) is deprecated and will be removed in next major version (4.0.0). 
+    * These settings are moved out of main luci app. Select "Preview or Deprecated" in "Extra Settings" tab and reboot to let those settings show again in preview app.
+    * Use Extra Inbound to manually add ports (avoid using common ports like 1080, also set listen addresses carefully) and adjust related workloads to use that.
+* Since version 3.2.0 sniffing and global custom settings are deprecated. 
+    * These features are moved out of main luci app (into preview app). 
+    * Global custom settings will be removed in version 4.0.0. Use "Custom Configuration Hook" for global custom settings. 
+    * Sniffing might get completely reimplemented later. Use FakeDNS instead of sniffing to avoid incompatibilities.
 * This project **DOES NOT SUPPORT** the following versions of OpenWrt because of the requirements of firewall4 and cilent-side rendering LuCI:
     * LEDE / OpenWrt prior to 22.03
     * [Lean's OpenWrt Source](https://github.com/coolsnowwolf/lede) (which uses a variant of LuCI shipped with OpenWrt 18.06)
 
     If this is your case, use Passwall or similar projects instead (you could find links in [XTLS/Xray-core](https://github.com/XTLS/Xray-core/)).
+* About experimental REALITY support
+    * it may change quite frequently (before the release of official documents about the protocol). Keep in mind for (maybe) breaking changes.
+* If you see `WARNING: at least one of asset files (geoip.dat, geosite.dat) is not found under /usr/share/xray. Xray may not work properly` and don't know what to do:
+    * try `opkg update && opkg install v2ray-geoip v2ray-geosite`
+    * if that doesn't work, see [#52](https://github.com/yichya/luci-app-xray/issues/52#issuecomment-856059905)
 * This project may change its code structure, configuration files format, user interface or dependencies quite frequently since it is still in its very early stage. 
-
-## Installation (Fw4 only)
-
-Just use `opkg -i *` to install both ipks from Releases.
 
 ## Installation (Manually building OpenWrt)
 
@@ -34,6 +32,37 @@ Choose one below:
 
 Then find `luci-app-xray` under `Extra Packages`.
 
+## Installation (Use GitHub actions to build ipks)
+
+Fork this repository and:
+
+* Create a release by pushing a tag
+* Wait until actions finish
+* Use `opkg -i *` to install both ipks from Releases.
+
+## Changelog since 3.4.0
+
+* 2024-02-18 chore: optimize code style; bump version
+* 2024-02-19 fix: several DNS related validation
+* 2024-02-20 fix: domain match priority; stricter resolve options; socks / http auth
+* 2024-02-23 chore: bump version to 3.4.1
+
+## Changelog since 3.3.0
+
+* 2024-01-19 chore: bump version
+* 2024-01-24 feat: add alias to LAN Hosts Access Control
+* 2024-02-04 fix: avoid firewall restart failure & some minor adjustments
+* 2024-02-16 feat: dns hijacking preview; deprecate global http / socks inbound
+* 2024-02-17 feat: add username / password for extra socks / http inbound
+
+## Changelog since 3.2.0
+
+* 2023-12-20 chore: bump version
+* 2023-12-22 chore: optimize list folded format; add roundRobin balancer
+* 2024-01-04 chore: start later than sysntpd; change firewall include file path
+* 2024-01-18 feat: make "Resolve Domain via DNS" available to all outbounds
+* 2024-01-19 feat: socks / http outbound
+
 ## Changelog since 3.1.0
 
 * 2023-10-24 chore: bump version
@@ -43,6 +72,9 @@ Then find `luci-app-xray` under `Extra Packages`.
 * 2023-10-31 chore: bump version to 3.1.1
 * 2023-11-01 feat: custom configuration hook
 * 2023-11-02 feat: specify DNS to resolve outbound server name
+* 2023-11-30 fix: dialer proxy tag
+* 2023-12-14 fix: default gateway
+* 2023-12-20 chore: deprecate sniffing; move some preview features to main app; add custom configuration hook; refactor web files
 
 ## Changelog since 3.0.0
 

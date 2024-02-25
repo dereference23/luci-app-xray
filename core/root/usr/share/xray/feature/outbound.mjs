@@ -1,6 +1,8 @@
 "use strict";
 
+import { http_outbound } from "../protocol/http.mjs";
 import { shadowsocks_outbound } from "../protocol/shadowsocks.mjs";
+import { socks_outbound } from "../protocol/socks.mjs";
 import { trojan_outbound } from "../protocol/trojan.mjs";
 import { vless_outbound } from "../protocol/vless.mjs";
 import { vmess_outbound } from "../protocol/vmess.mjs";
@@ -25,6 +27,10 @@ function server_outbound_recursive(t, server, tag, config) {
         outbound_result = shadowsocks_outbound(server, tag);
     } else if (server["protocol"] == "trojan") {
         outbound_result = trojan_outbound(server, tag);
+    } else if (server["protocol"] == "http") {
+        outbound_result = http_outbound(server, tag);
+    } else if (server["protocol"] == "socks") {
+        outbound_result = socks_outbound(server, tag);
     }
     if (outbound_result == null) {
         die(`unknown outbound server protocol ${server["protocol"]}`);
@@ -52,12 +58,13 @@ function server_outbound_recursive(t, server, tag, config) {
     return result;
 }
 
-export function direct_outbound(tag) {
+export function direct_outbound(tag, redirect) {
     return {
         protocol: "freedom",
         tag: tag,
         settings: {
-            domainStrategy: "UseIPv4"
+            domainStrategy: "UseIPv4",
+            redirect: redirect || ""
         },
         streamSettings: {
             sockopt: {
@@ -76,7 +83,7 @@ export function blackhole_outbound() {
 
 export function server_outbound(server, tag, config) {
     if (server == null) {
-        return [direct_outbound(tag)];
+        return [direct_outbound(tag, null)];
     }
     return server_outbound_recursive([], server, tag, config);
 };
